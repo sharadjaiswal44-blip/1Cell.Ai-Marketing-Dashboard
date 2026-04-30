@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1Cell.Ai — Marketing Campaign Dashboard</title>
+<meta name="description" content="Interactive marketing campaign dashboard for 1Cell.Ai showcasing Email, WhatsApp and LinkedIn campaign performance.">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1B365D;--navy-light:#2A4A7F;--navy-dark:#0F1F3A;
+  --gold:#D4A015;--gold-light:#E8B84A;--gold-dark:#B8880E;
+  --red:#B91C1C;--red-light:#DC2626;
+  --bg:#0B1120;--bg-card:rgba(27,54,93,0.18);--bg-card-hover:rgba(27,54,93,0.28);
+  --border:rgba(212,160,21,0.15);--border-hover:rgba(212,160,21,0.35);
+  --text:#E8ECF4;--text-muted:#8899B0;--text-dim:#5A6A80;
+  --shadow:0 8px 32px rgba(0,0,0,0.3);
+  --glass:saturate(180%) blur(20px);
+  --radius:16px;--radius-sm:10px;
+  --email-color:#4FC3F7;--whatsapp-color:#66BB6A;--linkedin-color:#42A5F5;
+  --chart-1:#4FC3F7;--chart-2:#66BB6A;--chart-3:#FF7043;--chart-4:#AB47BC;
+  --chart-5:#FFA726;--chart-6:#26C6DA;--chart-7:#EC407A;--chart-8:#7E57C2;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;top:-50%;left:-50%;width:200%;height:200%;
+  background:radial-gradient(ellipse at 20% 50%,rgba(27,54,93,0.4) 0%,transparent 50%),
+  radial-gradient(ellipse at 80% 20%,rgba(212,160,21,0.08) 0%,transparent 50%),
+  radial-gradient(ellipse at 50% 80%,rgba(185,28,28,0.06) 0%,transparent 50%);
+  z-index:-1;animation:bgShift 20s ease-in-out infinite alternate}
+@keyframes bgShift{0%{transform:translate(0,0)}100%{transform:translate(-5%,3%)}}
+
+/* Header */
+.header{background:linear-gradient(135deg,var(--navy-dark) 0%,var(--navy) 50%,var(--navy-light) 100%);
+  border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;
+  justify-content:space-between;height:72px;position:sticky;top:0;z-index:100;
+  backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass)}
+.header-left{display:flex;align-items:center;gap:16px}
+.header-logo{height:42px;filter:drop-shadow(0 2px 8px rgba(0,0,0,0.3))}
+.header-divider{width:1px;height:32px;background:var(--border)}
+.header-title{font-size:1.15rem;font-weight:600;letter-spacing:0.02em}
+.header-title span{color:var(--gold)}
+.header-right{display:flex;align-items:center;gap:12px;font-size:0.82rem;color:var(--text-muted)}
+.header-badge{background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:var(--navy-dark);
+  padding:4px 12px;border-radius:20px;font-weight:600;font-size:0.75rem;letter-spacing:0.05em}
+
+/* Container */
+.container{max-width:1440px;margin:0 auto;padding:1.5rem 2rem 3rem}
+
+/* Filters */
+.filters-bar{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:1.5rem;align-items:center}
+.filter-group{display:flex;align-items:center;gap:6px}
+.filter-label{font-size:0.78rem;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em}
+.filter-select{background:var(--bg-card);border:1px solid var(--border);color:var(--text);
+  padding:8px 32px 8px 14px;border-radius:var(--radius-sm);font-family:inherit;font-size:0.85rem;
+  cursor:pointer;outline:none;appearance:none;transition:all 0.3s ease;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3' stroke='%23D4A015' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;backdrop-filter:var(--glass)}
+.filter-select:hover,.filter-select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,160,21,0.1)}
+.filter-select option{background:var(--navy-dark);color:var(--text)}
+
+/* KPI Cards */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:1.5rem}
+.kpi-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px 24px;position:relative;overflow:hidden;transition:all 0.4s cubic-bezier(0.4,0,0.2,1);
+  backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass)}
+.kpi-card:hover{border-color:var(--border-hover);transform:translateY(-4px);box-shadow:var(--shadow)}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--gold),var(--gold-light));opacity:0;transition:opacity 0.4s}
+.kpi-card:hover::before{opacity:1}
+.kpi-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;margin-bottom:10px}
+.kpi-icon.blue{background:rgba(79,195,247,0.15);color:var(--chart-1)}
+.kpi-icon.green{background:rgba(102,187,106,0.15);color:var(--chart-2)}
+.kpi-icon.orange{background:rgba(255,112,67,0.15);color:var(--chart-3)}
+.kpi-icon.purple{background:rgba(171,71,188,0.15);color:var(--chart-4)}
+.kpi-icon.gold{background:rgba(212,160,21,0.15);color:var(--gold)}
+.kpi-icon.red{background:rgba(185,28,28,0.15);color:var(--red-light)}
+.kpi-label{font-size:0.78rem;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px}
+.kpi-value{font-size:1.8rem;font-weight:700;line-height:1.1}
+.kpi-value .unit{font-size:1rem;font-weight:400;color:var(--text-muted)}
+.kpi-sub{font-size:0.75rem;color:var(--text-dim);margin-top:4px}
+
+/* Chart Section */
+.section-title{font-size:1.1rem;font-weight:700;margin:2rem 0 1rem;display:flex;align-items:center;gap:10px}
+.section-title::before{content:'';width:4px;height:20px;background:var(--gold);border-radius:2px}
+.charts-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+.chart-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;position:relative;overflow:hidden;transition:all 0.4s cubic-bezier(0.4,0,0.2,1);
+  backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass)}
+.chart-card:hover{border-color:var(--border-hover);box-shadow:var(--shadow)}
+.chart-card.full{grid-column:1/-1}
+.chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.chart-title{font-size:0.92rem;font-weight:600}
+.chart-badge{font-size:0.7rem;padding:3px 10px;border-radius:12px;font-weight:500}
+.chart-badge.email{background:rgba(79,195,247,0.15);color:var(--chart-1)}
+.chart-badge.whatsapp{background:rgba(102,187,106,0.15);color:var(--chart-2)}
+.chart-badge.linkedin{background:rgba(66,165,245,0.15);color:var(--chart-3)}
+.chart-badge.all{background:rgba(212,160,21,0.15);color:var(--gold)}
+.chart-canvas-wrap{position:relative;width:100%;height:320px}
+.chart-canvas-wrap.short{height:260px}
+.chart-canvas-wrap.tall{height:380px}
+canvas{width:100%!important;height:100%!important}
+
+/* Footer */
+.footer{text-align:center;padding:2rem;color:var(--text-dim);font-size:0.78rem;border-top:1px solid var(--border);margin-top:2rem}
+.footer a{color:var(--gold);text-decoration:none}
+
+/* Animations */
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.animate-in{animation:fadeUp 0.6s ease forwards;opacity:0}
+.animate-in:nth-child(1){animation-delay:0.05s}
+.animate-in:nth-child(2){animation-delay:0.1s}
+.animate-in:nth-child(3){animation-delay:0.15s}
+.animate-in:nth-child(4){animation-delay:0.2s}
+.animate-in:nth-child(5){animation-delay:0.25s}
+.animate-in:nth-child(6){animation-delay:0.3s}
+
+/* Responsive */
+@media(max-width:1024px){.charts-grid{grid-template-columns:1fr}}
+@media(max-width:768px){
+  .header{padding:0 1rem;height:60px}
+  .header-title{font-size:0.95rem}
+  .container{padding:1rem}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .filters-bar{flex-direction:column;align-items:stretch}
+}
+@media(max-width:480px){.kpi-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-left">
+    <img src="logo.png" alt="1Cell.Ai Logo" class="header-logo" id="header-logo">
+    <div class="header-divider"></div>
+    <div class="header-title">Marketing Campaign <span>Dashboard</span></div>
+  </div>
+  <div class="header-right">
+    <span class="header-badge">LIVE DATA</span>
+    <span>March — April 2026</span>
+  </div>
+</header>
+
+<div class="container">
+  <!-- Filters -->
+  <div class="filters-bar" id="filters-bar">
+    <div class="filter-group">
+      <span class="filter-label">Channel</span>
+      <select class="filter-select" id="filter-channel" onchange="applyFilters()">
+        <option value="all">All Channels</option>
+        <option value="email">📧 Zoho Email</option>
+        <option value="whatsapp">💬 Zoho WhatsApp</option>
+        <option value="linkedin">🔗 LinkedIn Organic</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">Month</span>
+      <select class="filter-select" id="filter-month" onchange="applyFilters()">
+        <option value="all">All Months</option>
+        <option value="March">March 2026</option>
+        <option value="April">April 2026</option>
+      </select>
+    </div>
+    <div class="filter-group" id="filter-posttype-group" style="display:none">
+      <span class="filter-label">LinkedIn Post Type</span>
+      <select class="filter-select" id="filter-posttype" onchange="applyFilters()">
+        <option value="all">All Post Types</option>
+        <option value="Graphic Post">📊 Graphic Post</option>
+        <option value="Poll Post">📋 Poll Post</option>
+        <option value="Video Post">🎬 Video Post</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid" id="kpi-grid"></div>
+
+  <!-- Email & WhatsApp Section -->
+  <div id="section-email-whatsapp">
+    <h2 class="section-title" id="section-ew-title">Email & WhatsApp Campaigns</h2>
+    <div class="charts-grid">
+      <div class="chart-card animate-in" id="card-email-funnel">
+        <div class="chart-header">
+          <span class="chart-title">📧 Email Campaign Funnel</span>
+          <span class="chart-badge email">ZOHO EMAIL</span>
+        </div>
+        <div class="chart-canvas-wrap"><canvas id="chart-email-funnel"></canvas></div>
+      </div>
+      <div class="chart-card animate-in" id="card-whatsapp-funnel">
+        <div class="chart-header">
+          <span class="chart-title">💬 WhatsApp Campaign Funnel</span>
+          <span class="chart-badge whatsapp">ZOHO WHATSAPP</span>
+        </div>
+        <div class="chart-canvas-wrap"><canvas id="chart-whatsapp-funnel"></canvas></div>
+      </div>
+      <div class="chart-card full animate-in" id="card-open-rate">
+        <div class="chart-header">
+          <span class="chart-title">📊 Open Rate Comparison — Email vs WhatsApp</span>
+          <span class="chart-badge all">COMPARISON</span>
+        </div>
+        <div class="chart-canvas-wrap short"><canvas id="chart-open-rate"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LinkedIn Section -->
+  <div id="section-linkedin">
+    <h2 class="section-title">LinkedIn Organic Campaign</h2>
+    <div class="charts-grid">
+      <div class="chart-card animate-in" id="card-li-impressions">
+        <div class="chart-header">
+          <span class="chart-title">👁️ Impressions & Engagement Rate</span>
+          <span class="chart-badge linkedin">LINKEDIN</span>
+        </div>
+        <div class="chart-canvas-wrap"><canvas id="chart-li-impressions"></canvas></div>
+      </div>
+      <div class="chart-card animate-in" id="card-li-posttype">
+        <div class="chart-header">
+          <span class="chart-title">📈 Impressions by Post Type</span>
+          <span class="chart-badge linkedin">POST TYPES</span>
+        </div>
+        <div class="chart-canvas-wrap"><canvas id="chart-li-posttype"></canvas></div>
+      </div>
+      <div class="chart-card animate-in" id="card-li-likes">
+        <div class="chart-header">
+          <span class="chart-title">❤️ Likes & Reposts per Campaign</span>
+          <span class="chart-badge linkedin">ENGAGEMENT</span>
+        </div>
+        <div class="chart-canvas-wrap"><canvas id="chart-li-likes"></canvas></div>
+      </div>
+      <div class="chart-card animate-in" id="card-li-poll-video">
+        <div class="chart-header">
+          <span class="chart-title">🗳️ Poll Votes & 🎬 Video Views</span>
+          <span class="chart-badge linkedin">SPECIAL METRICS</span>
+        </div>
+        <div class="chart-canvas-wrap"><canvas id="chart-li-poll-video"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cross-Channel Section -->
+  <div id="section-cross">
+    <h2 class="section-title">Cross-Channel Overview</h2>
+    <div class="charts-grid">
+      <div class="chart-card animate-in" id="card-timeline">
+        <div class="chart-header">
+          <span class="chart-title">📅 Campaign Timeline</span>
+          <span class="chart-badge all">ALL CHANNELS</span>
+        </div>
+        <div class="chart-canvas-wrap"><canvas id="chart-timeline"></canvas></div>
+      </div>
+      <div class="chart-card animate-in" id="card-radar">
+        <div class="chart-header">
+          <span class="chart-title">🎯 Channel Performance Radar</span>
+          <span class="chart-badge all">NORMALIZED</span>
+        </div>
+        <div class="chart-canvas-wrap"><canvas id="chart-radar"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  <p>© 2026 <a href="https://1cell.ai" target="_blank">1Cell.Ai</a> — Ai-Powered Precision Oncology | Marketing Campaign Dashboard</p>
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════
+const DATA = {
+  email: [
+    {month:"March", date:"23 Mar", campaign:"March Newsletter", sent:1134, delivered:1111, opened:103, openRate:9.3},
+    {month:"March", date:"25 Mar", campaign:"OI360 Week1", sent:797, delivered:785, opened:33, openRate:4.2},
+    {month:"April", date:"2 Apr", campaign:"OI360 Week2", sent:1118, delivered:1081, opened:67, openRate:6.2},
+    {month:"April", date:"9 Apr", campaign:"OI360 Week3", sent:790, delivered:767, opened:36, openRate:4.7},
+    {month:"April", date:"16 Apr", campaign:"OI360 Week4", sent:789, delivered:778, opened:31, openRate:4.0}
+  ],
+  whatsapp: [
+    {month:"March", date:"26 Mar", campaign:"March Newsletter", sent:386, delivered:72, opened:59, openRate:81.9},
+    {month:"March", date:"26 Mar", campaign:"OI360 Week1", sent:739, delivered:253, opened:142, openRate:56.1},
+    {month:"April", date:"3 Apr", campaign:"OI360 Week2", sent:739, delivered:624, opened:322, openRate:51.6},
+    {month:"April", date:"10 Apr", campaign:"OI360 Week3", sent:739, delivered:693, opened:347, openRate:50.1},
+    {month:"April", date:"16 Apr", campaign:"OI360 Week4", sent:739, delivered:683, opened:249, openRate:36.4}
+  ],
+  linkedin: [
+    {month:"March", date:"26 Mar", campaign:"OI360 Week1", type:"Graphic Post", impressions:2079, likes:42, engRate:5.5, reposts:6, votes:null, views:null},
+    {month:"March", date:"27 Mar", campaign:"OI360 Week1", type:"Poll Post", impressions:2008, likes:2, engRate:3.78, reposts:null, votes:32, views:null},
+    {month:"April", date:"2 Apr", campaign:"OI360 Week2", type:"Graphic Post", impressions:1405, likes:25, engRate:4.7, reposts:4, votes:null, views:null},
+    {month:"April", date:"9 Apr", campaign:"OI360 Week3", type:"Graphic Post", impressions:1544, likes:31, engRate:5.44, reposts:3, votes:null, views:null},
+    {month:"April", date:"10 Apr", campaign:"OI360 Week3", type:"Poll Post", impressions:1195, likes:2, engRate:2.34, reposts:null, votes:13, views:null},
+    {month:"April", date:"17 Apr", campaign:"OI360 Week4", type:"Graphic Post", impressions:1573, likes:26, engRate:5.09, reposts:2, votes:null, views:null},
+    {month:"April", date:"22 Apr", campaign:"OI360 Week4", type:"Video Post", impressions:1031, likes:25, engRate:8.34, reposts:1, votes:null, views:358}
+  ]
+};
+
+// Chart instances
+let charts = {};
+
+// ═══════════════════════════════════════════════════════
+// CHART CONFIG HELPERS
+// ═══════════════════════════════════════════════════════
+Chart.defaults.color = '#8899B0';
+Chart.defaults.borderColor = 'rgba(212,160,21,0.08)';
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(11,17,32,0.95)';
+Chart.defaults.plugins.tooltip.borderColor = 'rgba(212,160,21,0.3)';
+Chart.defaults.plugins.tooltip.borderWidth = 1;
+Chart.defaults.plugins.tooltip.cornerRadius = 10;
+Chart.defaults.plugins.tooltip.padding = 12;
+Chart.defaults.plugins.tooltip.titleFont = {weight:'600', size:13};
+Chart.defaults.plugins.tooltip.bodyFont = {size:12};
+Chart.defaults.plugins.legend.labels.usePointStyle = true;
+Chart.defaults.plugins.legend.labels.pointStyle = 'circle';
+Chart.defaults.plugins.legend.labels.padding = 16;
+
+const GRADIENT_EMAIL = (ctx) => {
+  const g = ctx.chart.ctx.createLinearGradient(0,0,0,ctx.chart.height);
+  g.addColorStop(0,'rgba(79,195,247,0.5)'); g.addColorStop(1,'rgba(79,195,247,0.05)'); return g;
+};
+const GRADIENT_WA = (ctx) => {
+  const g = ctx.chart.ctx.createLinearGradient(0,0,0,ctx.chart.height);
+  g.addColorStop(0,'rgba(102,187,106,0.5)'); g.addColorStop(1,'rgba(102,187,106,0.05)'); return g;
+};
+
+function destroyChart(key) { if(charts[key]) { charts[key].destroy(); delete charts[key]; } }
+
+// ═══════════════════════════════════════════════════════
+// FILTERS
+// ═══════════════════════════════════════════════════════
+function getFilters() {
+  return {
+    channel: document.getElementById('filter-channel').value,
+    month: document.getElementById('filter-month').value,
+    postType: document.getElementById('filter-posttype').value
+  };
+}
+
+function filterByMonth(arr, month) {
+  if (month === 'all') return arr;
+  return arr.filter(d => d.month === month);
+}
+
+function applyFilters() {
+  const f = getFilters();
+  // Show/hide LinkedIn post type filter
+  document.getElementById('filter-posttype-group').style.display =
+    (f.channel === 'linkedin' || f.channel === 'all') ? 'flex' : 'none';
+
+  // Show/hide sections
+  const showEmail = f.channel === 'all' || f.channel === 'email';
+  const showWA = f.channel === 'all' || f.channel === 'whatsapp';
+  const showEW = showEmail || showWA;
+  const showLI = f.channel === 'all' || f.channel === 'linkedin';
+
+  document.getElementById('section-email-whatsapp').style.display = showEW ? '' : 'none';
+  document.getElementById('card-email-funnel').style.display = showEmail ? '' : 'none';
+  document.getElementById('card-whatsapp-funnel').style.display = showWA ? '' : 'none';
+  document.getElementById('card-open-rate').style.display = (showEmail && showWA) ? '' : 'none';
+  document.getElementById('section-linkedin').style.display = showLI ? '' : 'none';
+  document.getElementById('section-cross').style.display = f.channel === 'all' ? '' : 'none';
+
+  // Update section title
+  if(showEmail && !showWA) document.getElementById('section-ew-title').textContent = 'Email Campaigns';
+  else if(!showEmail && showWA) document.getElementById('section-ew-title').textContent = 'WhatsApp Campaigns';
+  else document.getElementById('section-ew-title').textContent = 'Email & WhatsApp Campaigns';
+
+  renderKPIs(f);
+  renderAllCharts(f);
+}
+
+// ═══════════════════════════════════════════════════════
+// KPI CARDS
+// ═══════════════════════════════════════════════════════
+function renderKPIs(f) {
+  const grid = document.getElementById('kpi-grid');
+  const cards = [];
+  const eData = filterByMonth(DATA.email, f.month);
+  const wData = filterByMonth(DATA.whatsapp, f.month);
+  let liData = filterByMonth(DATA.linkedin, f.month);
+  if (f.postType !== 'all') liData = liData.filter(d => d.type === f.postType);
+
+  if (f.channel === 'all' || f.channel === 'email') {
+    const totalSent = eData.reduce((s,d) => s+d.sent, 0);
+    const totalOpened = eData.reduce((s,d) => s+d.opened, 0);
+    const avgOR = eData.length ? (eData.reduce((s,d) => s+d.openRate, 0)/eData.length).toFixed(1) : 0;
+    cards.push({icon:'📧',cls:'blue',label:'Email — Sent',value:totalSent.toLocaleString(),sub:eData.length+' campaigns'});
+    cards.push({icon:'📬',cls:'blue',label:'Email — Opened',value:totalOpened.toLocaleString(),sub:'Avg open rate: '+avgOR+'%'});
+  }
+  if (f.channel === 'all' || f.channel === 'whatsapp') {
+    const totalSent = wData.reduce((s,d) => s+d.sent, 0);
+    const totalOpened = wData.reduce((s,d) => s+d.opened, 0);
+    const avgOR = wData.length ? (wData.reduce((s,d) => s+d.openRate, 0)/wData.length).toFixed(1) : 0;
+    cards.push({icon:'💬',cls:'green',label:'WhatsApp — Sent',value:totalSent.toLocaleString(),sub:wData.length+' campaigns'});
+    cards.push({icon:'👁️',cls:'green',label:'WhatsApp — Opened',value:totalOpened.toLocaleString(),sub:'Avg open rate: '+avgOR+'%'});
+  }
+  if (f.channel === 'all' || f.channel === 'linkedin') {
+    const totalImp = liData.reduce((s,d) => s+d.impressions, 0);
+    const totalLikes = liData.reduce((s,d) => s+d.likes, 0);
+    const avgEng = liData.length ? (liData.reduce((s,d) => s+d.engRate, 0)/liData.length).toFixed(2) : 0;
+    const totalVotes = liData.reduce((s,d) => s+(d.votes||0), 0);
+    const totalViews = liData.reduce((s,d) => s+(d.views||0), 0);
+    cards.push({icon:'👁️',cls:'orange',label:'LinkedIn — Impressions',value:totalImp.toLocaleString(),sub:liData.length+' posts'});
+    cards.push({icon:'❤️',cls:'purple',label:'LinkedIn — Likes',value:totalLikes.toLocaleString(),sub:'Avg engagement: '+avgEng+'%'});
+    if (totalVotes > 0) cards.push({icon:'🗳️',cls:'gold',label:'Poll Votes',value:totalVotes.toLocaleString(),sub:'From poll posts'});
+    if (totalViews > 0) cards.push({icon:'🎬',cls:'red',label:'Video Views',value:totalViews.toLocaleString(),sub:'From video posts'});
+  }
+
+  grid.innerHTML = cards.map((c,i) => `
+    <div class="kpi-card animate-in" style="animation-delay:${i*0.06}s">
+      <div class="kpi-icon ${c.cls}">${c.icon}</div>
+      <div class="kpi-label">${c.label}</div>
+      <div class="kpi-value">${c.value}</div>
+      <div class="kpi-sub">${c.sub}</div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════════════
+// CHART RENDERERS
+// ═══════════════════════════════════════════════════════
+function renderAllCharts(f) {
+  const eData = filterByMonth(DATA.email, f.month);
+  const wData = filterByMonth(DATA.whatsapp, f.month);
+  let liData = filterByMonth(DATA.linkedin, f.month);
+  if (f.postType !== 'all') liData = liData.filter(d => d.type === f.postType);
+
+  // Email Funnel
+  if (f.channel === 'all' || f.channel === 'email') renderFunnel('chart-email-funnel', eData, 'email');
+  // WhatsApp Funnel
+  if (f.channel === 'all' || f.channel === 'whatsapp') renderFunnel('chart-whatsapp-funnel', wData, 'whatsapp');
+  // Open Rate Comparison
+  if ((f.channel === 'all') || (f.channel === 'email' && f.channel === 'whatsapp'))
+    renderOpenRateComparison(eData, wData);
+  else if (f.channel === 'all') renderOpenRateComparison(eData, wData);
+  // LinkedIn Charts
+  if (f.channel === 'all' || f.channel === 'linkedin') {
+    renderLIImpressions(liData);
+    renderLIPostType(liData);
+    renderLILikes(liData);
+    renderLIPollVideo(liData);
+  }
+  // Cross-channel
+  if (f.channel === 'all') {
+    renderTimeline(eData, wData, liData);
+    renderRadar(eData, wData, liData);
+  }
+}
+
+function renderFunnel(canvasId, data, type) {
+  destroyChart(canvasId);
+  const labels = data.map(d => d.campaign);
+  const colors = type === 'email'
+    ? ['rgba(79,195,247,0.85)','rgba(79,195,247,0.55)','rgba(79,195,247,0.3)']
+    : ['rgba(102,187,106,0.85)','rgba(102,187,106,0.55)','rgba(102,187,106,0.3)'];
+  const borders = type === 'email'
+    ? ['#4FC3F7','#4FC3F7','#4FC3F7']
+    : ['#66BB6A','#66BB6A','#66BB6A'];
+
+  charts[canvasId] = new Chart(document.getElementById(canvasId), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {label:'Sent', data:data.map(d=>d.sent), backgroundColor:colors[0], borderColor:borders[0], borderWidth:1, borderRadius:6},
+        {label:'Delivered', data:data.map(d=>d.delivered), backgroundColor:colors[1], borderColor:borders[1], borderWidth:1, borderRadius:6},
+        {label:'Opened', data:data.map(d=>d.opened), backgroundColor:colors[2], borderColor:borders[2], borderWidth:1, borderRadius:6}
+      ]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {legend:{position:'top'}, datalabels:{display:false}},
+      scales: {x:{grid:{color:'rgba(212,160,21,0.06)'}}, y:{grid:{display:false}}}
+    }
+  });
+}
+
+function renderOpenRateComparison(eData, wData) {
+  destroyChart('chart-open-rate');
+  // Match campaigns that exist in both
+  const allCampaigns = [...new Set([...eData.map(d=>d.campaign), ...wData.map(d=>d.campaign)])];
+  const eRates = allCampaigns.map(c => { const found = eData.find(d=>d.campaign===c); return found ? found.openRate : null; });
+  const wRates = allCampaigns.map(c => { const found = wData.find(d=>d.campaign===c); return found ? found.openRate : null; });
+
+  charts['chart-open-rate'] = new Chart(document.getElementById('chart-open-rate'), {
+    type: 'bar',
+    data: {
+      labels: allCampaigns,
+      datasets: [
+        {label:'Email Open Rate %', data:eRates, backgroundColor:'rgba(79,195,247,0.7)', borderColor:'#4FC3F7', borderWidth:1, borderRadius:8},
+        {label:'WhatsApp Open Rate %', data:wRates, backgroundColor:'rgba(102,187,106,0.7)', borderColor:'#66BB6A', borderWidth:1, borderRadius:8}
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'top'},
+        datalabels:{display:true, color:'#E8ECF4', font:{weight:'600',size:11},
+          formatter:(v)=> v !== null ? v+'%' : '', anchor:'end', align:'top'}
+      },
+      scales: {
+        y:{title:{display:true,text:'Open Rate (%)'},grid:{color:'rgba(212,160,21,0.06)'}},
+        x:{grid:{display:false}}
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+}
+
+function renderLIImpressions(data) {
+  destroyChart('chart-li-impressions');
+  const labels = data.map(d => d.campaign + '\n' + d.type);
+
+  charts['chart-li-impressions'] = new Chart(document.getElementById('chart-li-impressions'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {label:'Impressions', data:data.map(d=>d.impressions), backgroundColor:'rgba(66,165,245,0.6)',
+         borderColor:'#42A5F5', borderWidth:1, borderRadius:6, yAxisID:'y', order:2},
+        {label:'Engagement Rate %', data:data.map(d=>d.engRate), type:'line',
+         borderColor:'#FFA726', backgroundColor:'rgba(255,167,38,0.1)', pointBackgroundColor:'#FFA726',
+         pointRadius:5, pointHoverRadius:7, borderWidth:2.5, tension:0.4, yAxisID:'y1', order:1}
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'top'}, datalabels:{display:false}},
+      scales: {
+        y:{position:'left', title:{display:true,text:'Impressions'}, grid:{color:'rgba(212,160,21,0.06)'}},
+        y1:{position:'right', title:{display:true,text:'Engagement Rate %'}, grid:{display:false},
+            min:0, max:10},
+        x:{grid:{display:false}, ticks:{maxRotation:0, font:{size:10}}}
+      }
+    }
+  });
+}
+
+function renderLIPostType(data) {
+  destroyChart('chart-li-posttype');
+  const types = ['Graphic Post','Poll Post','Video Post'];
+  const typeColors = ['rgba(66,165,245,0.7)','rgba(171,71,188,0.7)','rgba(255,112,67,0.7)'];
+  const typeBorders = ['#42A5F5','#AB47BC','#FF7043'];
+  const totals = types.map(t => data.filter(d=>d.type===t).reduce((s,d)=>s+d.impressions,0));
+
+  charts['chart-li-posttype'] = new Chart(document.getElementById('chart-li-posttype'), {
+    type: 'doughnut',
+    data: {
+      labels: types,
+      datasets: [{
+        data: totals,
+        backgroundColor: typeColors,
+        borderColor: typeBorders,
+        borderWidth: 2,
+        hoverOffset: 16
+      }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      cutout: '55%',
+      plugins: {
+        legend:{position:'bottom', labels:{padding:20}},
+        datalabels:{display:true, color:'#E8ECF4', font:{weight:'700',size:13},
+          formatter:(v,ctx)=> {
+            const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+            return total > 0 ? Math.round(v/total*100)+'%' : '';
+          }}
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+}
+
+function renderLILikes(data) {
+  destroyChart('chart-li-likes');
+  const labels = data.map(d => d.campaign + ' (' + d.type.split(' ')[0] + ')');
+
+  charts['chart-li-likes'] = new Chart(document.getElementById('chart-li-likes'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {label:'Likes', data:data.map(d=>d.likes), backgroundColor:'rgba(236,64,122,0.6)',
+         borderColor:'#EC407A', borderWidth:1, borderRadius:6},
+        {label:'Reposts', data:data.map(d=>d.reposts||0), backgroundColor:'rgba(126,87,194,0.6)',
+         borderColor:'#7E57C2', borderWidth:1, borderRadius:6}
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'top'}, datalabels:{display:false}},
+      scales: {
+        y:{stacked:true, grid:{color:'rgba(212,160,21,0.06)'}},
+        x:{stacked:true, grid:{display:false}, ticks:{maxRotation:25, font:{size:10}}}
+      }
+    }
+  });
+}
+
+function renderLIPollVideo(data) {
+  destroyChart('chart-li-poll-video');
+  const pollData = data.filter(d => d.votes !== null && d.votes > 0);
+  const videoData = data.filter(d => d.views !== null && d.views > 0);
+  const labels = [];
+  const votesArr = [];
+  const viewsArr = [];
+
+  pollData.forEach(d => { labels.push(d.campaign + ' (Poll)'); votesArr.push(d.votes); viewsArr.push(0); });
+  videoData.forEach(d => { labels.push(d.campaign + ' (Video)'); votesArr.push(0); viewsArr.push(d.views); });
+
+  if (labels.length === 0) {
+    labels.push('No Data');
+    votesArr.push(0);
+    viewsArr.push(0);
+  }
+
+  charts['chart-li-poll-video'] = new Chart(document.getElementById('chart-li-poll-video'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {label:'Poll Votes', data:votesArr, backgroundColor:'rgba(171,71,188,0.65)',
+         borderColor:'#AB47BC', borderWidth:1, borderRadius:8},
+        {label:'Video Views', data:viewsArr, backgroundColor:'rgba(255,167,38,0.65)',
+         borderColor:'#FFA726', borderWidth:1, borderRadius:8}
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'top'},
+        datalabels:{display:true, color:'#E8ECF4', font:{weight:'600',size:12},
+          formatter:(v)=> v > 0 ? v : '', anchor:'end', align:'top'}
+      },
+      scales: {
+        y:{grid:{color:'rgba(212,160,21,0.06)'}},
+        x:{grid:{display:false}, ticks:{font:{size:10}}}
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+}
+
+function renderTimeline(eData, wData, liData) {
+  destroyChart('chart-timeline');
+  const parseDateIdx = (dateStr) => {
+    const months = {'Mar':3,'Apr':4};
+    const parts = dateStr.split(' ');
+    const day = parseInt(parts[0]);
+    const mon = months[parts[1]] || 3;
+    return mon * 100 + day;
+  };
+
+  const allDates = [...new Set([...eData.map(d=>d.date),...wData.map(d=>d.date),...liData.map(d=>d.date)])];
+  allDates.sort((a,b) => parseDateIdx(a) - parseDateIdx(b));
+
+  const ePoints = eData.map(d => ({x:d.date, y:1, r:Math.sqrt(d.sent/50)+3}));
+  const wPoints = wData.map(d => ({x:d.date, y:2, r:Math.sqrt(d.sent/50)+3}));
+  const lPoints = liData.map(d => ({x:d.date, y:3, r:Math.sqrt(d.impressions/200)+3}));
+
+  charts['chart-timeline'] = new Chart(document.getElementById('chart-timeline'), {
+    type: 'bubble',
+    data: {
+      datasets: [
+        {label:'Email', data:ePoints, backgroundColor:'rgba(79,195,247,0.6)', borderColor:'#4FC3F7', borderWidth:1},
+        {label:'WhatsApp', data:wPoints, backgroundColor:'rgba(102,187,106,0.6)', borderColor:'#66BB6A', borderWidth:1},
+        {label:'LinkedIn', data:lPoints, backgroundColor:'rgba(255,112,67,0.6)', borderColor:'#FF7043', borderWidth:1}
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'top'}, datalabels:{display:false}},
+      scales: {
+        x:{type:'category', labels:allDates, grid:{color:'rgba(212,160,21,0.06)'}, title:{display:true,text:'Date'}},
+        y:{min:0.5, max:3.5, ticks:{callback:(v)=>({1:'Email',2:'WhatsApp',3:'LinkedIn'}[v]||'')},
+           grid:{color:'rgba(212,160,21,0.06)'}}
+      }
+    }
+  });
+}
+
+function renderRadar(eData, wData, liData) {
+  destroyChart('chart-radar');
+  // Normalize metrics to 0-100 scale
+  const totalEmailSent = eData.reduce((s,d) => s+d.sent, 0);
+  const avgEmailOR = eData.reduce((s,d) => s+d.openRate, 0) / (eData.length||1);
+  const totalWASent = wData.reduce((s,d) => s+d.sent, 0);
+  const avgWAOR = wData.reduce((s,d) => s+d.openRate, 0) / (wData.length||1);
+  const totalLIImp = liData.reduce((s,d) => s+d.impressions, 0);
+  const avgLIEng = liData.reduce((s,d) => s+d.engRate, 0) / (liData.length||1);
+  const totalLILikes = liData.reduce((s,d) => s+d.likes, 0);
+
+  // Normalize each metric within its max
+  const maxReach = Math.max(totalEmailSent, totalWASent, totalLIImp);
+  const maxRate = Math.max(avgEmailOR, avgWAOR, avgLIEng);
+
+  charts['chart-radar'] = new Chart(document.getElementById('chart-radar'), {
+    type: 'radar',
+    data: {
+      labels: ['Reach Volume', 'Open/Eng Rate', 'Campaigns Count', 'Consistency', 'Impact Score'],
+      datasets: [
+        {label:'Email', data:[
+          (totalEmailSent/maxReach*100).toFixed(0),
+          (avgEmailOR/maxRate*100).toFixed(0),
+          eData.length*20,
+          80,
+          ((totalEmailSent * avgEmailOR/100) / 50).toFixed(0)
+        ], backgroundColor:'rgba(79,195,247,0.15)', borderColor:'#4FC3F7', borderWidth:2, pointBackgroundColor:'#4FC3F7'},
+        {label:'WhatsApp', data:[
+          (totalWASent/maxReach*100).toFixed(0),
+          (avgWAOR/maxRate*100).toFixed(0),
+          wData.length*20,
+          75,
+          Math.min(100,((totalWASent * avgWAOR/100) / 50)).toFixed(0)
+        ], backgroundColor:'rgba(102,187,106,0.15)', borderColor:'#66BB6A', borderWidth:2, pointBackgroundColor:'#66BB6A'},
+        {label:'LinkedIn', data:[
+          (totalLIImp/maxReach*100).toFixed(0),
+          (avgLIEng/maxRate*100).toFixed(0),
+          liData.length*14,
+          90,
+          Math.min(100,((totalLIImp * avgLIEng/100) / 50)).toFixed(0)
+        ], backgroundColor:'rgba(255,112,67,0.15)', borderColor:'#FF7043', borderWidth:2, pointBackgroundColor:'#FF7043'}
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{position:'top'}, datalabels:{display:false}},
+      scales:{r:{
+        beginAtZero:true, max:100,
+        grid:{color:'rgba(212,160,21,0.1)'},
+        angleLines:{color:'rgba(212,160,21,0.1)'},
+        pointLabels:{font:{size:11, weight:'500'}}
+      }}
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  applyFilters();
+});
+</script>
+</body>
+</html>
