@@ -10,6 +10,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
+        /* WordPress Theme Overrides to make it a true full-width landing page */
+        header.site-header, footer.site-footer, .site-header, .site-footer, .nav-primary, .nav-secondary, .title-area, .site-title, .site-description, .footer-widgets, .entry-header { 
+            display: none !important; 
+        }
+        .site-inner, .content, .wrap, .entry, .entry-content, main, article { 
+            max-width: 100% !important; 
+            padding: 0 !important; 
+            margin: 0 !important; 
+            width: 100% !important; 
+            border: none !important; 
+        }
+        body.custom-background, body { 
+            margin: 0 !important; 
+            padding: 0 !important; 
+            background: #fff !important; 
+        }
+
         :root {
             /* 1Cell.Ai Brand Colors */
             --color-navy: #1D3A5F;
